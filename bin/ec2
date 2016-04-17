@@ -10,6 +10,11 @@ Usage:
 EOF
 end
 
+if ENV["AWS_REGION"].nil?
+  STDERR.puts "AWS_REGION env variable not found."
+  exit(1)
+end
+
 ec2 = Aws::EC2::Client.new
 
 instances = ec2.describe_instances.reservations.each_with_object({}) do |reservation, result|
