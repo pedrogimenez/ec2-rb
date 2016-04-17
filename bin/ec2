@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require "aws-sdk"
+
+def help
+  STDOUT.puts <<-EOF
+Usage:
+  ec2 ssh INSTANCE
+  ec2 ip INSTANCE
+EOF
+end
+
+ec2 = Aws::EC2::Client.new
+
+instances = ec2.describe_instances.reservations.each_with_object({}) do |reservation, result|
+  reservation.instances.each do |instance|
+    result[instance.tags.first.value] = instance.private_dns_name
+  end
+end
+
+case ARGV[0]
+when "--help"
+  help
+when "ssh"
+  instance = instances[ARGV[1]]
+  system("sh -c \"ssh -t admin@#{instance} 'sudo -i'\"")
+when "ip"
+  STDOUT.puts instances[ARGV[1]]
+else
+  help
+end
