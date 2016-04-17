@@ -5,6 +5,12 @@ It uses the AWS credentials from `~/.aws/credentials`.
 
 ☝🏻 Don't forget to set the `AWS_REGION` env variable.
 
+## Setup:
+
+```sh
+$ script/setup
+```
+
 ## Usage:
 
 ```sh
