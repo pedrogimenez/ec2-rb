@@ -30,7 +30,7 @@ when "ssh"
   instance = instances[ARGV[1]]
   system("sh -c \"ssh -t admin@#{instance} 'sudo -i'\"")
 when "ip"
-  STDOUT.puts instances[ARGV[1]]
+  STDOUT.write instances[ARGV[1]]
 else
   help
 end
