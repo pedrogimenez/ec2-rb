@@ -28,7 +28,7 @@ when "--help"
   help
 when "ssh"
   instance = instances[ARGV[1]]
-  system("sh -c \"ssh -t admin@#{instance} 'sudo -i'\"")
+  system("sh -c \"ssh -t admin@#{instance}\"")
 when "ip"
   STDOUT.write instances[ARGV[1]]
 else
