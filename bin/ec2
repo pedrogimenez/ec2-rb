@@ -2,6 +2,8 @@
 
 require "aws-sdk"
 
+Instance = Struct.new(:id, :dns, :name)
+
 def help
   STDOUT.puts <<-EOF
 Usage:
@@ -10,27 +12,54 @@ Usage:
 EOF
 end
 
+def run_command(name)
+  instances = instances_by_name(name)
+
+  if instances.count > 1
+    STDOUT.puts("There are #{instances.count} instances:")
+    instances.each do |instance|
+      STDOUT.puts("#{instance.name}: #{instance.dns}")
+    end
+  elsif instances.count == 1
+    yield(instances.first)
+  else
+    STDERR.puts "No instances found."
+    exit(1)
+  end
+end
+
+def instances_by_name(regex)
+  ec2_client.describe_instances.reservations.each_with_object([]) do |reservation, instances|
+    reservation.instances.each do |instance|
+      next unless instance.state.name == "running" && instance.tags.any?
+
+      instances << Instance.new(instance.instance_id, instance.private_dns_name, instance.tags.first.value)
+    end
+  end.select { |instance| instance.name =~ /^#{regex}$/ }
+end
+
+def ec2_client
+  @ec2 ||= Aws::EC2::Client.new
+end
+
 if ENV["AWS_REGION"].nil?
   STDERR.puts "AWS_REGION env variable not found."
   exit(1)
-end
-
-ec2 = Aws::EC2::Client.new
-
-instances = ec2.describe_instances.reservations.each_with_object({}) do |reservation, result|
-  reservation.instances.each do |instance|
-    result[instance.tags.first.value] = instance.private_dns_name
-  end
 end
 
 case ARGV[0]
 when "--help"
   help
 when "ssh"
-  instance = instances[ARGV[1]]
-  system("sh -c \"ssh -t admin@#{instance}\"")
+  run_command(ARGV[1]) do |instance|
+    system("sh -c \"ssh -t admin@#{instance.dns}\"")
+  end
 when "ip"
-  STDOUT.write instances[ARGV[1]]
+  run_command(ARGV[1]) do |instance|
+    STDOUT.puts instance.dns
+  end
 else
   help
 end
+
+exit(0)
