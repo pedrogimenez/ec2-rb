@@ -1,12 +1,14 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    aws-sdk (2.2.34)
-      aws-sdk-resources (= 2.2.34)
-    aws-sdk-core (2.2.34)
+    aws-sdk (2.3.4)
+      aws-sdk-resources (= 2.3.4)
+    aws-sdk-core (2.3.4)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.2.34)
-      aws-sdk-core (= 2.2.34)
+    aws-sdk-resources (2.3.4)
+      aws-sdk-core (= 2.3.4)
+    fawsade (1.0.0)
+      aws-sdk
     jmespath (1.2.4)
       json_pure (>= 1.8.1)
     json_pure (1.8.3)
@@ -15,7 +17,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aws-sdk
+  fawsade
 
 BUNDLED WITH
-   1.11.2
+   1.12.0.rc.4
