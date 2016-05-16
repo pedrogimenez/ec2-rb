@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
 
-require "aws-sdk"
+require "fawsade"
 
-Instance = Struct.new(:id, :dns, :name)
+@aws = Fawsade::Client.new(
+  region: ENV.fetch("AWS_REGION"),
+  access_key_id: ENV.fetch("AWS_ACCESS_KEY_ID"),
+  secret_access_key: ENV.fetch("AWS_SECRET_ACCESS_KEY"))
 
 def help
   STDOUT.puts <<-EOF
@@ -13,7 +16,7 @@ EOF
 end
 
 def run_command(name)
-  instances = instances_by_name(name)
+  instances = @aws.instances_by_name(name)
 
   if instances.count > 1
     STDOUT.puts("There are #{instances.count} instances:")
@@ -26,25 +29,6 @@ def run_command(name)
     STDERR.puts "No instances found."
     exit(1)
   end
-end
-
-def instances_by_name(regex)
-  ec2_client.describe_instances.reservations.each_with_object([]) do |reservation, instances|
-    reservation.instances.each do |instance|
-      next unless instance.state.name == "running" && instance.tags.any?
-
-      instances << Instance.new(instance.instance_id, instance.private_dns_name, instance.tags.first.value)
-    end
-  end.select { |instance| instance.name =~ /^#{regex}$/ }
-end
-
-def ec2_client
-  @ec2 ||= Aws::EC2::Client.new
-end
-
-if ENV["AWS_REGION"].nil?
-  STDERR.puts "AWS_REGION env variable not found."
-  exit(1)
 end
 
 case ARGV[0]
